@@ -45,7 +45,7 @@ def check_zero_emergence(aligned_df: pd.DataFrame, tab_name: str) -> list:
     findings = []
     MIN_VALUE = 1_000   # ignore sub-1k items (rounding noise)
 
-    df = aligned_df.copy()
+    df = aligned_df.copy().reset_index(drop=True)
     df["cy_value"] = pd.to_numeric(df["cy_value"], errors="coerce")
     df["py_value"] = pd.to_numeric(df["py_value"], errors="coerce")
 
@@ -91,11 +91,15 @@ def check_consistency(df: pd.DataFrame, tab_name: str) -> list:
     """Flags subtotal rows where the declared total doesn't match sum of children."""
     findings = []
 
-    cy_codes = df["cy_code"].dropna()
-    total_rows = df[
+    # Reset index so boolean masks align with df integer index
+    df = df.reset_index(drop=True)
+
+    cy_codes = df["cy_code"].fillna("")
+    mask = (
         cy_codes.str.endswith((".T", ".0", "U.", "L.", "I."), na=False) |
         cy_codes.str.contains(r"\.U$|\.L$|\.I\.$", na=False, regex=True)
-    ]
+    )
+    total_rows = df[mask]
 
     # Also catch rows where description contains "total" or "summation"
     if "description" in df.columns:
@@ -257,6 +261,7 @@ def check_reasonableness(df: pd.DataFrame, tab_name: str) -> list:
     ZSCORE_HIGH   = 3.0
     ZSCORE_MEDIUM = 2.0
 
+    df = df.reset_index(drop=True)
     high_movers = df[
         (df["pct_change"].abs() > PCT_THRESHOLD) |
         (df["z_score"].abs() > ZSCORE_MEDIUM)

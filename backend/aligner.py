@@ -70,6 +70,7 @@ def align_rows(cy_df: pd.DataFrame, py_df: pd.DataFrame) -> pd.DataFrame:
                 "description":  _scalar(cy_df.loc[cy_code, "description"]),
                 "match_score":  100,
                 "match_status": "exact",
+                "row_num":      _scalar(cy_df.loc[cy_code, "row_num"]) if "row_num" in cy_df.columns else 9999,
             })
         else:
             cy_desc  = _scalar(cy_df.loc[cy_code, "description"])
@@ -95,6 +96,7 @@ def align_rows(cy_df: pd.DataFrame, py_df: pd.DataFrame) -> pd.DataFrame:
                         "description":  cy_desc,
                         "match_score":  result[1],
                         "match_status": "fuzzy",
+                        "row_num":      _scalar(cy_df.loc[cy_code, "row_num"]) if "row_num" in cy_df.columns else 9999,
                     })
                     continue
 
@@ -106,6 +108,7 @@ def align_rows(cy_df: pd.DataFrame, py_df: pd.DataFrame) -> pd.DataFrame:
                 "description":  cy_desc,
                 "match_score":  0,
                 "match_status": "new_in_cy",
+                "row_num":      _scalar(cy_df.loc[cy_code, "row_num"]) if "row_num" in cy_df.columns else 9999,
             })
 
     matched_py = {r["py_code"] for r in matched_rows if r["py_code"]}

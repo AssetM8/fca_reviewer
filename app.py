@@ -6,7 +6,7 @@ Run with: streamlit run app.py --server.port 8501
 import streamlit as st
 import httpx
 import pandas as pd
-import json
+
 import plotly.graph_objects as go
 
 BACKEND_URL = "http://localhost:8001"
@@ -25,55 +25,64 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ── Base ── */
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
-.main .block-container {
-    padding: 1.5rem 2rem 2rem;
-    max-width: 1400px;
-}
+/* ── Deloitte Brand Palette ──────────────────────────────────────────
+   Primary Green : #86BC25
+   Deep Green    : #4A6741
+   Black         : #1A1A1A
+   Charcoal      : #2D2D2D
+   Dark surface  : #111111
+   Off-white     : #F5F5F5
+   Muted text    : #8A8A8A
+────────────────────────────────────────────────────────────────────── */
 
-/* ── Hide default Streamlit chrome ── */
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+.main .block-container { padding: 1.5rem 2rem 2rem; max-width: 1400px; }
 #MainMenu, footer, .stDeployButton { display: none !important; }
 header[data-testid="stHeader"] { background: transparent; }
 
 /* ── Sidebar ── */
 [data-testid="stSidebar"] {
-    background: #0F172A;
-    border-right: none;
+    background: #111111;
+    border-right: 1px solid #2D2D2D;
 }
-[data-testid="stSidebar"] * { color: #CBD5E1 !important; }
-[data-testid="stSidebar"] .stFileUploader label { color: #94A3B8 !important; font-size: 0.78rem !important; }
-[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3 { color: #F1F5F9 !important; }
+[data-testid="stSidebar"] * { color: #CCCCCC !important; }
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3 { color: #F5F5F5 !important; }
+[data-testid="stSidebar"] .stFileUploader label {
+    color: #8A8A8A !important;
+    font-size: 0.78rem !important;
+}
 [data-testid="stSidebar"] .stButton > button {
-    background: #1E3A5F !important;
-    color: #E2E8F0 !important;
-    border: 1px solid #334155 !important;
+    background: #1E1E1E !important;
+    color: #D4E8A0 !important;
+    border: 1px solid #3A3A3A !important;
     border-radius: 8px !important;
     width: 100%;
     font-size: 0.85rem !important;
     transition: all 0.2s ease;
 }
 [data-testid="stSidebar"] .stButton > button:hover {
-    background: #2563EB !important;
-    border-color: #2563EB !important;
-    color: white !important;
+    background: #86BC25 !important;
+    border-color: #86BC25 !important;
+    color: #111111 !important;
+    font-weight: 600 !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37,99,235,0.3) !important;
+    box-shadow: 0 4px 14px rgba(134,188,37,0.35) !important;
 }
 [data-testid="stSidebar"] [data-testid="stFileUploader"] {
-    background: #1E293B;
+    background: #1A1A1A;
     border-radius: 10px;
     padding: 8px;
-    border: 1px dashed #334155;
+    border: 1px dashed #3A3A3A;
 }
 
 /* ── Page header ── */
 .page-header {
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 50%, #1e40af 100%);
-    border-radius: 16px;
+    background: linear-gradient(135deg, #111111 0%, #1A1A1A 60%, #2D3A1A 100%);
+    border: 1px solid #2D2D2D;
+    border-left: 4px solid #86BC25;
+    border-radius: 14px;
     padding: 28px 32px;
     margin-bottom: 24px;
     position: relative;
@@ -83,32 +92,28 @@ header[data-testid="stHeader"] { background: transparent; }
 .page-header::after {
     content: '';
     position: absolute;
-    top: -50%; right: -10%;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+    top: -40%; right: -5%;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(134,188,37,0.08) 0%, transparent 70%);
     pointer-events: none;
 }
 .page-header h1 {
-    color: #F8FAFC !important;
+    color: #F5F5F5 !important;
     font-size: 1.6rem !important;
     font-weight: 700 !important;
     margin: 0 !important;
     letter-spacing: -0.02em;
 }
-.page-header p {
-    color: #94A3B8 !important;
-    font-size: 0.85rem;
-    margin: 4px 0 0;
-}
+.page-header p { color: #8A8A8A !important; font-size: 0.85rem; margin: 4px 0 0; }
 .header-badge {
     display: inline-block;
-    background: rgba(37,99,235,0.25);
-    border: 1px solid rgba(96,165,250,0.3);
-    color: #93C5FD;
+    background: rgba(134,188,37,0.15);
+    border: 1px solid rgba(134,188,37,0.35);
+    color: #B5D95A;
     border-radius: 20px;
     padding: 2px 12px;
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin-bottom: 8px;
@@ -124,18 +129,17 @@ header[data-testid="stHeader"] { background: transparent; }
 }
 .kpi-card {
     background: #FFFFFF;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #E8E8E8;
     border-radius: 12px;
     padding: 16px;
     position: relative;
     overflow: hidden;
     transition: all 0.25s ease;
-    cursor: default;
 }
 .kpi-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(0,0,0,0.09);
-    border-color: #BFDBFE;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    border-color: #C5DE7A;
 }
 .kpi-card::before {
     content: '';
@@ -144,258 +148,134 @@ header[data-testid="stHeader"] { background: transparent; }
     height: 3px;
     border-radius: 12px 12px 0 0;
 }
-.kpi-card.blue::before   { background: #3B82F6; }
-.kpi-card.slate::before  { background: #64748B; }
-.kpi-card.red::before    { background: #EF4444; }
-.kpi-card.amber::before  { background: #F59E0B; }
-.kpi-card.orange::before { background: #F97316; }
-.kpi-card.violet::before { background: #8B5CF6; }
-.kpi-icon {
-    font-size: 1.4rem;
-    margin-bottom: 6px;
-    display: block;
-}
-.kpi-value {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #0F172A;
-    line-height: 1;
-    margin-bottom: 4px;
-}
-.kpi-label {
-    font-size: 0.72rem;
-    color: #64748B;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
+.kpi-card.green::before  { background: #86BC25; }
+.kpi-card.olive::before  { background: #4A6741; }
+.kpi-card.black::before  { background: #1A1A1A; }
+.kpi-card.red::before    { background: #D4380D; }
+.kpi-card.amber::before  { background: #D48806; }
+.kpi-card.slate::before  { background: #595959; }
+.kpi-icon  { font-size: 1.4rem; margin-bottom: 6px; display: block; }
+.kpi-value { font-size: 1.75rem; font-weight: 700; color: #1A1A1A; line-height: 1; margin-bottom: 4px; }
+.kpi-label { font-size: 0.72rem; color: #737373; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
 
 /* ── Section headers ── */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 24px 0 14px;
-    animation: fadeInUp 0.3s ease both;
-}
+.section-header { display: flex; align-items: center; gap: 10px; margin: 24px 0 14px; }
 .section-header h3 {
-    font-size: 0.95rem !important;
-    font-weight: 600 !important;
-    color: #1E293B !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    color: #1A1A1A !important;
     margin: 0 !important;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
 }
-.section-line {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(to right, #E2E8F0, transparent);
-}
+.section-line { flex: 1; height: 1px; background: linear-gradient(to right, #86BC25, #E8E8E8 40%, transparent); }
 
 /* ── Priority badges ── */
 .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 10px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 10px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em;
 }
-.badge-high   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
-.badge-medium { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
-.badge-low    { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
-.badge-ok     { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+.badge-high   { background: #FFF1F0; color: #A8071A; border: 1px solid #FFA39E; }
+.badge-medium { background: #FFFBE6; color: #874D00; border: 1px solid #FFD666; }
+.badge-low    { background: #F0FFE6; color: #254000; border: 1px solid #B7EB8F; }
+.badge-ok     { background: #F0FFE6; color: #135200; border: 1px solid #86BC25; }
 
-/* ── Status cards ── */
-.status-card {
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 10px;
-    padding: 14px 16px;
-    margin-bottom: 8px;
-    transition: all 0.2s ease;
-    animation: fadeInUp 0.3s ease both;
-}
-.status-card:hover { background: #F1F5F9; border-color: #CBD5E1; }
-.status-card.high   { border-left: 4px solid #EF4444; }
-.status-card.medium { border-left: 4px solid #F59E0B; }
-.status-card.low    { border-left: 4px solid #10B981; }
-
-/* ── Commentary bubbles ── */
-.comment-bubble {
-    background: #F0F9FF;
-    border: 1px solid #BAE6FD;
-    border-radius: 0 12px 12px 12px;
-    padding: 14px 18px;
-    margin: 8px 0 20px;
-    font-size: 0.88rem;
-    line-height: 1.6;
-    color: #0C4A6E;
-    position: relative;
-    animation: fadeInUp 0.3s ease both;
-}
-.comment-bubble::before {
-    content: '"';
-    font-size: 2.5rem;
-    color: #7DD3FC;
-    position: absolute;
-    top: -8px; left: 10px;
-    font-family: Georgia, serif;
-    line-height: 1;
-}
-.comment-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-.comment-title {
-    font-weight: 600;
-    color: #0F172A;
-    font-size: 0.9rem;
-}
-.comment-metrics {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 10px;
-}
-.comment-metric {
-    background: white;
-    border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    padding: 8px 12px;
-    text-align: center;
-}
-.comment-metric-val {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #0F172A;
-}
-.comment-metric-lbl {
-    font-size: 0.68rem;
-    color: #64748B;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* ── CCR Alert cards ── */
+/* ── CCR Cards ── */
 .ccr-card {
     background: white;
     border-radius: 10px;
     padding: 14px 16px;
     margin-bottom: 8px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #E8E8E8;
     transition: all 0.2s ease;
 }
 .ccr-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.07); }
-.ccr-card.high   { border-left: 4px solid #EF4444; background: #FFF8F8; }
-.ccr-card.medium { border-left: 4px solid #F59E0B; background: #FFFBF0; }
-.ccr-check-type {
-    font-size: 0.68rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #64748B;
-    margin-bottom: 4px;
-}
-.ccr-finding {
-    font-size: 0.83rem;
-    color: #1E293B;
-    line-height: 1.5;
-}
+.ccr-card.high   { border-left: 4px solid #D4380D; background: #FFF8F6; }
+.ccr-card.medium { border-left: 4px solid #D48806; background: #FFFDF0; }
+.ccr-check-type { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #737373; margin-bottom: 4px; }
+.ccr-finding    { font-size: 0.83rem; color: #1A1A1A; line-height: 1.5; }
 
-/* ── Exec summary ── */
+/* ── Commentary bubbles ── */
+.comment-bubble {
+    background: #F6FBE8;
+    border: 1px solid #C5DE7A;
+    border-radius: 0 12px 12px 12px;
+    padding: 14px 18px;
+    margin: 8px 0 20px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: #2D3A1A;
+    position: relative;
+}
+.comment-bubble::before {
+    content: '"';
+    font-size: 2.5rem;
+    color: #86BC25;
+    position: absolute;
+    top: -8px; left: 10px;
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+.comment-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.comment-title  { font-weight: 600; color: #1A1A1A; font-size: 0.9rem; }
+.comment-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+.comment-metric {
+    background: white; border: 1px solid #E8E8E8;
+    border-radius: 8px; padding: 8px 12px; text-align: center;
+}
+.comment-metric-val { font-size: 1.05rem; font-weight: 700; color: #1A1A1A; }
+.comment-metric-lbl { font-size: 0.68rem; color: #737373; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* ── Exec memo ── */
 .memo-container {
     background: white;
-    border: 1px solid #E2E8F0;
-    border-radius: 16px;
+    border: 1px solid #E8E8E8;
+    border-top: 4px solid #86BC25;
+    border-radius: 14px;
     padding: 36px 40px;
     box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    animation: fadeInUp 0.4s ease both;
 }
-.memo-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #0F172A;
-    margin-bottom: 4px;
-}
-.memo-meta {
-    font-size: 0.78rem;
-    color: #64748B;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 2px solid #F1F5F9;
-}
+.memo-title    { font-size: 1.1rem; font-weight: 700; color: #1A1A1A; margin-bottom: 4px; }
+.memo-meta     { font-size: 0.78rem; color: #737373; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #F0F0F0; }
 .memo-section-title {
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #2563EB;
-    margin: 20px 0 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #86BC25; margin: 20px 0 8px;
+    display: flex; align-items: center; gap: 8px;
 }
-.memo-section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #DBEAFE;
-}
-.memo-text {
-    font-size: 0.875rem;
-    color: #334155;
-    line-height: 1.7;
-}
+.memo-section-title::after { content: ''; flex: 1; height: 1px; background: #E0F0B0; }
+.memo-text { font-size: 0.875rem; color: #404040; line-height: 1.7; }
 
 /* ── Export cards ── */
 .export-card {
     background: white;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #E8E8E8;
     border-radius: 14px;
     padding: 24px;
     text-align: center;
     transition: all 0.25s ease;
-    cursor: pointer;
 }
 .export-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 16px 32px rgba(0,0,0,0.1);
-    border-color: #BFDBFE;
+    box-shadow: 0 16px 32px rgba(134,188,37,0.15);
+    border-color: #86BC25;
 }
-.export-icon { font-size: 2.4rem; margin-bottom: 10px; display: block; }
-.export-title { font-size: 0.9rem; font-weight: 600; color: #0F172A; margin-bottom: 4px; }
-.export-desc  { font-size: 0.75rem; color: #64748B; line-height: 1.4; }
-
-/* ── Upload zone ── */
-.upload-zone {
-    background: #F8FAFC;
-    border: 2px dashed #CBD5E1;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    transition: all 0.2s ease;
-    margin-bottom: 8px;
-}
-.upload-zone:hover { border-color: #3B82F6; background: #EFF6FF; }
-.upload-label { font-size: 0.8rem; color: #64748B; margin-top: 6px; }
+.export-icon  { font-size: 2.4rem; margin-bottom: 10px; display: block; }
+.export-title { font-size: 0.9rem; font-weight: 600; color: #1A1A1A; margin-bottom: 4px; }
+.export-desc  { font-size: 0.75rem; color: #737373; line-height: 1.4; }
 
 /* ── Tabs ── */
 [data-testid="stTabs"] [data-baseweb="tab-list"] {
-    background: #F8FAFC;
+    background: #F5F5F5;
     border-radius: 10px;
     padding: 4px;
     gap: 2px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #E8E8E8;
 }
 [data-testid="stTabs"] [data-baseweb="tab"] {
     background: transparent !important;
     border-radius: 7px !important;
-    color: #64748B !important;
+    color: #737373 !important;
     font-size: 0.82rem !important;
     font-weight: 500 !important;
     padding: 6px 14px !important;
@@ -403,9 +283,10 @@ header[data-testid="stHeader"] { background: transparent; }
 }
 [data-testid="stTabs"] [aria-selected="true"] {
     background: white !important;
-    color: #1E40AF !important;
-    font-weight: 600 !important;
+    color: #1A1A1A !important;
+    font-weight: 700 !important;
     box-shadow: 0 1px 4px rgba(0,0,0,0.1) !important;
+    border-bottom: 2px solid #86BC25 !important;
 }
 
 /* ── Buttons ── */
@@ -414,92 +295,72 @@ header[data-testid="stHeader"] { background: transparent; }
     font-weight: 500 !important;
     font-size: 0.85rem !important;
     transition: all 0.2s ease !important;
-    border: 1px solid #E2E8F0 !important;
+    border: 1px solid #E8E8E8 !important;
 }
 .stButton > button[kind="primary"] {
-    background: linear-gradient(135deg, #1E40AF, #2563EB) !important;
-    color: white !important;
+    background: #86BC25 !important;
+    color: #111111 !important;
     border: none !important;
-    box-shadow: 0 2px 8px rgba(37,99,235,0.25) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px rgba(134,188,37,0.3) !important;
 }
 .stButton > button[kind="primary"]:hover {
-    box-shadow: 0 6px 18px rgba(37,99,235,0.4) !important;
+    background: #6FA01A !important;
+    box-shadow: 0 6px 18px rgba(134,188,37,0.45) !important;
     transform: translateY(-1px) !important;
 }
 .stButton > button:not([kind="primary"]):hover {
-    background: #F1F5F9 !important;
-    border-color: #CBD5E1 !important;
+    background: #F0FFE6 !important;
+    border-color: #86BC25 !important;
+    color: #2D4A00 !important;
     transform: translateY(-1px) !important;
 }
 
 /* ── Expanders ── */
 [data-testid="stExpander"] {
     background: white !important;
-    border: 1px solid #E2E8F0 !important;
+    border: 1px solid #E8E8E8 !important;
     border-radius: 10px !important;
     margin-bottom: 6px !important;
     overflow: hidden;
+    transition: border-color 0.2s ease;
 }
-[data-testid="stExpander"]:hover { border-color: #BFDBFE !important; }
+[data-testid="stExpander"]:hover { border-color: #86BC25 !important; }
 [data-testid="stExpander"] summary {
-    background: #FAFBFC !important;
+    background: #FAFAFA !important;
     padding: 10px 16px !important;
     font-size: 0.85rem !important;
     font-weight: 500 !important;
-    color: #1E293B !important;
+    color: #1A1A1A !important;
 }
-
-/* ── Dataframe ── */
-[data-testid="stDataFrame"] {
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 10px !important;
-    overflow: hidden;
-}
-
-/* ── Success / info / warning ── */
-[data-testid="stAlert"] {
-    border-radius: 10px !important;
-    border: none !important;
-    font-size: 0.85rem !important;
-}
-
-/* ── Animations ── */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0);    }
-}
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-12px); }
-    to   { opacity: 1; transform: translateY(0);     }
-}
-@keyframes pulse {
-    0%, 100% { opacity: 1;   }
-    50%       { opacity: 0.6; }
-}
-.loading-pulse { animation: pulse 1.5s ease infinite; }
 
 /* ── Sidebar status pill ── */
 .sidebar-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    margin-bottom: 4px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 8px;
+    font-size: 0.78rem; margin-bottom: 4px;
 }
-.sidebar-status.loaded { background: rgba(16,185,129,0.15); color: #6EE7B7; }
-.sidebar-status.empty  { background: rgba(100,116,139,0.15); color: #94A3B8; }
+.sidebar-status.loaded { background: rgba(134,188,37,0.12); color: #B5D95A; }
+.sidebar-status.empty  { background: rgba(255,255,255,0.05); color: #737373; }
 .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.dot.green { background: #10B981; box-shadow: 0 0 6px #10B981; }
-.dot.gray  { background: #475569; }
+.dot.green { background: #86BC25; box-shadow: 0 0 6px #86BC25; }
+.dot.gray  { background: #3A3A3A; }
 
 /* ── Divider ── */
 .styled-divider {
     height: 1px;
-    background: linear-gradient(to right, transparent, #E2E8F0 20%, #E2E8F0 80%, transparent);
+    background: linear-gradient(to right, #86BC25 0%, #E8E8E8 30%, transparent);
     margin: 20px 0;
 }
+
+/* ── Alerts ── */
+[data-testid="stAlert"] { border-radius: 10px !important; border: none !important; font-size: 0.85rem !important; }
+
+/* ── Animations ── */
+@keyframes fadeInUp   { from { opacity:0; transform:translateY(16px);  } to { opacity:1; transform:translateY(0);  } }
+@keyframes fadeInDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0);  } }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.loading-pulse { animation: pulse 1.5s ease infinite; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -533,7 +394,7 @@ def plotly_theme():
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Inter", size=11, color="#334155"),
-        colorway=["#3B82F6","#10B981","#F59E0B","#EF4444","#8B5CF6","#06B6D4"],
+        colorway=["#86BC25","#4A6741","#1A1A1A","#D4380D","#8B8B00","#06B6D4"],
     )
 
 M = dict(l=16, r=16, t=24, b=16)   # default margin — override per chart
@@ -576,23 +437,77 @@ with st.sidebar:
 
     run_disabled = not (cy_file and py_file)
     if st.button("▶  Run Analysis", type="primary", disabled=run_disabled, use_container_width=True):
-        with st.spinner("Running full analysis…"):
-            files = {
-                "cy_file": ("cy.xlsx", cy_file.getvalue(),
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-                "py_file": ("py.xlsx", py_file.getvalue(),
-                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-            }
-            try:
-                resp = httpx.post(f"{BACKEND_URL}/compare", files=files, timeout=600)
-                resp.raise_for_status()
-                st.session_state["results"] = resp.json()
-                for k in ["xlsx_bytes","memo","pdf_bytes","export_mode","gen_pdf","wf_findings"]:
-                    st.session_state.pop(k, None)
-            except httpx.ConnectError:
-                st.error("Backend offline.")
-            except Exception as e:
-                st.error(str(e))
+        for k in ["xlsx_bytes","memo","pdf_bytes","export_mode","gen_pdf","wf_findings","results"]:
+            st.session_state.pop(k, None)
+
+        files = {
+            "cy_file": ("cy.xlsx", cy_file.getvalue(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            "py_file": ("py.xlsx", py_file.getvalue(),
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+        }
+
+        # ── Live progress UI ───────────────────────────────────────────────
+        progress_container = st.empty()
+
+        with progress_container.container():
+            st.markdown("""
+            <div style="background:#1A1A1A;border-radius:12px;padding:20px 24px;
+                        border:1px solid #2D2D2D;margin-bottom:4px;">
+                <div style="font-size:0.75rem;color:#86BC25;font-weight:600;
+                            text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">
+                    Analysis in progress
+                </div>
+            """, unsafe_allow_html=True)
+            prog_bar  = st.progress(0)
+            prog_text = st.empty()
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        try:
+            import json as _json
+            with httpx.Client(verify=False, timeout=600) as client:
+                with client.stream("POST", f"{BACKEND_URL}/compare_stream",
+                                   files=files) as resp:
+                    resp.raise_for_status()
+                    buffer = ""
+                    for chunk in resp.iter_text():
+                        buffer += chunk
+                        while "\n\n" in buffer:
+                            event, buffer = buffer.split("\n\n", 1)
+                            lines = event.strip().split("\n")
+                            event_type = "message"
+                            data_line  = ""
+                            for line in lines:
+                                if line.startswith("event:"):
+                                    event_type = line[6:].strip()
+                                elif line.startswith("data:"):
+                                    data_line = line[5:].strip()
+                            if not data_line:
+                                continue
+                            if event_type == "result":
+                                st.session_state["results"] = _json.loads(data_line)
+                            else:
+                                try:
+                                    d = _json.loads(data_line)
+                                    pct = d.get("pct", 0)
+                                    msg = d.get("msg", "")
+                                    prog_bar.progress(min(pct, 100))
+                                    prog_text.markdown(
+                                        f'<div style="font-size:0.82rem;color:#D4E8A0;'
+                                        f'margin-top:4px;">{msg}</div>',
+                                        unsafe_allow_html=True
+                                    )
+                                except Exception:
+                                    pass
+
+            progress_container.empty()
+
+        except httpx.ConnectError:
+            progress_container.empty()
+            st.error("❌ Backend offline. Run: uvicorn backend.api:app --host 0.0.0.0 --port 8001 --reload")
+        except Exception as e:
+            progress_container.empty()
+            st.error(f"❌ Error: {e}")
 
     # Status indicator
     if "results" in st.session_state:
@@ -603,12 +518,12 @@ with st.sidebar:
         ])
         hi = int((all_df_sb.get("priority","") == "High").sum()) if "priority" in all_df_sb.columns else 0
         st.markdown(f"""
-        <div style="margin-top:16px;padding:12px;background:rgba(16,185,129,0.1);
-                    border:1px solid rgba(16,185,129,0.2);border-radius:10px;">
-            <div style="font-size:0.7rem;color:#6EE7B7;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">
+        <div style="margin-top:16px;padding:12px;background:rgba(134,188,37,0.1);
+                    border:1px solid rgba(134,188,37,0.2);border-radius:10px;">
+            <div style="font-size:0.7rem;color:#B5D95A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">
                 ✅ Analysis Ready
             </div>
-            <div style="font-size:0.82rem;color:#A7F3D0;">
+            <div style="font-size:0.82rem;color:#D4E8A0;">
                 {len(data["results"])} tabs &nbsp;·&nbsp; {hi} high-priority
             </div>
         </div>""", unsafe_allow_html=True)
@@ -685,12 +600,12 @@ with TABS[0]:
 
     st.markdown(f"""
     <div class="kpi-grid">
-        {kpi_card("📋", len(data["results"]), "Tabs Reviewed", "blue")}
+        {kpi_card("📋", len(data["results"]), "Tabs Reviewed", "green")}
         {kpi_card("🔴", high_count, "High Priority", "red")}
         {kpi_card("🟡", medium_count, "Medium Priority", "amber")}
-        {kpi_card("⚠️", missing_tabs, "Missing Tabs", "orange")}
-        {kpi_card("🔍", emerged, "Zero Emergence", "violet")}
-        {kpi_card("🏛", pca_str, "PCA Coverage", "slate")}
+        {kpi_card("⚠️", missing_tabs, "Missing Tabs", "black")}
+        {kpi_card("🔍", emerged, "Zero Emergence", "olive")}
+        {kpi_card("🏛", pca_str, "PCA Coverage", "green")}
     </div>
     """, unsafe_allow_html=True)
 
@@ -704,7 +619,7 @@ with TABS[0]:
                .nlargest(15, "abs_pct")).copy()
         if not top.empty:
             top["label"]  = top["description"].str[:40] + "  (" + top["tab"].str[:10] + ")"
-            pri_map = {"High":"#EF4444","Medium":"#F59E0B","Low":"#10B981"}
+            pri_map = {"High":"#D4380D","Medium":"#D48806","Low":"#86BC25"}
             top["colour"] = top["priority"].map(pri_map).fillna("#94A3B8")
             fig = go.Figure(go.Bar(
                 x=top["pct_change"], y=top["label"], orientation="h",
@@ -727,10 +642,10 @@ with TABS[0]:
         if any(cy_vals):
             fig_bs = go.Figure()
             fig_bs.add_trace(go.Bar(name="YE25", y=bs_labels, x=cy_vals, orientation="h",
-                marker=dict(color="#3B82F6", line=dict(width=0)),
+                marker=dict(color="#86BC25", line=dict(width=0)),
                 hovertemplate="<b>%{y}</b><br>YE25: %{x:,.0f}<extra></extra>"))
             fig_bs.add_trace(go.Bar(name="YE24", y=bs_labels, x=py_vals, orientation="h",
-                marker=dict(color="#BFDBFE", line=dict(width=0)),
+                marker=dict(color="#4A6741", line=dict(width=0)),
                 hovertemplate="<b>%{y}</b><br>YE24: %{x:,.0f}<extra></extra>"))
             fig_bs.update_layout(**plotly_theme(), barmode="group", height=420, margin=dict(l=16,r=16,t=40,b=16),
                 xaxis=dict(tickformat=",.0f", **AX),
@@ -768,9 +683,9 @@ with TABS[0]:
             fig_wf = go.Figure(go.Waterfall(
                 orientation="v", measure=measures, x=labels, y=values,
                 connector=dict(line=dict(color="#E2E8F0", width=1, dash="dot")),
-                increasing=dict(marker=dict(color="#10B981", line=dict(width=0))),
+                increasing=dict(marker=dict(color="#86BC25", line=dict(width=0))),
                 decreasing=dict(marker=dict(color="#EF4444", line=dict(width=0))),
-                totals=dict(marker=dict(color="#3B82F6", line=dict(width=0))),
+                totals=dict(marker=dict(color="#1A1A1A", line=dict(width=0))),
                 text=[f"{v:,.0f}" for v in values],
                 textposition="outside",
                 hovertemplate="<b>%{x}</b><br>%{y:,.0f}<extra></extra>",
@@ -799,14 +714,14 @@ with TABS[0]:
     cy_seg = _segs(cy_cap); py_seg = _segs(py_cap)
 
     if cy_seg["ta"] > 0 or py_seg["ta"] > 0:
-        SEGS=[("Other Liabilities","ol","#475569"),("Current Estimate (CE)","ce","#60A5FA"),
-              ("MOCE","moce","#FBBF24"),("MCA Zone","mz","#F87171"),
-              ("PCA Buffer","pb","#FB923C"),("Excess Capital","ex","#34D399")]
+        SEGS=[("Other Liabilities","ol","#2D2D2D"),("Current Estimate (CE)","ce","#7AAD3A"),
+              ("MOCE","moce","#A8CC5A"),("MCA Zone","mz","#D4380D"),
+              ("PCA Buffer","pb","#D48806"),("Excess Capital","ex","#86BC25")]
         fig_h = go.Figure()
         fig_h.add_trace(go.Bar(name="Total Assets",
             x=["YE25 — Assets","YE24 — Assets"],
             y=[cy_seg["ta"],py_seg["ta"]],
-            marker=dict(color="#CBD5E1", line=dict(width=0)), showlegend=True))
+            marker=dict(color="#595959", line=dict(width=0)), showlegend=True))
         for sn,sk,sc in SEGS:
             fig_h.add_trace(go.Bar(name=sn,
                 x=["YE25 — Capital","YE24 — Capital"],
@@ -820,8 +735,8 @@ with TABS[0]:
         for seg, xi, lbl in [(cy_seg,2,"YE25"),(py_seg,3,"YE24")]:
             if not seg["pca"]: continue
             for y_val, tag, colour, dash in [
-                (seg["tl"]+seg["mca"],"MCA","#F97316","dot"),
-                (seg["tl"]+seg["pca"],"PCA","#DC2626","dash"),
+                (seg["tl"]+seg["mca"],"MCA","#D48806","dot"),
+                (seg["tl"]+seg["pca"],"PCA","#D4380D","dash"),
             ]:
                 val = seg["mca"] if tag=="MCA" else seg["pca"]
                 fig_h.add_shape(type="line",x0=xi-0.38,x1=xi+0.38,y0=y_val,y1=y_val,
@@ -841,7 +756,7 @@ with TABS[0]:
                 ok = v >= thr
                 icon = "🟢" if ok else "🔴"
                 col.markdown(f"""
-                <div class="kpi-card {"blue" if ok else "red"}" style="text-align:center">
+                <div class="kpi-card {"green" if ok else "red"}" style="text-align:center">
                     <div style="font-size:1.4rem">{icon}</div>
                     <div class="kpi-value">{v:.1f}%</div>
                     <div class="kpi-label">{lbl}</div>
@@ -888,7 +803,7 @@ with TABS[1]:
         </div>""", unsafe_allow_html=True)
 
     def _pc(v):
-        c={"High":"#FEE2E2","Medium":"#FEF3C7","Low":"#D1FAE5"}
+        c={"High":"#FFF1F0","Medium":"#FFFBE6","Low":"#F0FFE6"}
         return f"background-color:{c[v]};font-weight:500" if v in c else ""
 
     for tr in data["results"]:
@@ -922,15 +837,15 @@ with TABS[2]:
     unmat = (adf["Status"]=="unmatched").sum()
 
     m1,m2,m3,m4 = st.columns(4)
-    m1.markdown(f'<div class="kpi-card blue"><span class="kpi-icon">📂</span><div class="kpi-value">{total}</div><div class="kpi-label">Total Tabs</div></div>', unsafe_allow_html=True)
-    m2.markdown(f'<div class="kpi-card slate"><span class="kpi-icon">✅</span><div class="kpi-value">{exact}</div><div class="kpi-label">Exact Match</div></div>', unsafe_allow_html=True)
+    m1.markdown(f'<div class="kpi-card green"><span class="kpi-icon">📂</span><div class="kpi-value">{total}</div><div class="kpi-label">Total Tabs</div></div>', unsafe_allow_html=True)
+    m2.markdown(f'<div class="kpi-card black"><span class="kpi-icon">✅</span><div class="kpi-value">{exact}</div><div class="kpi-label">Exact Match</div></div>', unsafe_allow_html=True)
     m3.markdown(f'<div class="kpi-card amber"><span class="kpi-icon">🔀</span><div class="kpi-value">{fuzzy}</div><div class="kpi-label">Fuzzy Match</div></div>', unsafe_allow_html=True)
     m4.markdown(f'<div class="kpi-card red"><span class="kpi-icon">❌</span><div class="kpi-value">{unmat}</div><div class="kpi-label">Unmatched</div></div>', unsafe_allow_html=True)
 
     st.markdown('<div style="height:16px;"></div>', unsafe_allow_html=True)
 
     def _sc(v):
-        c={"exact":"#D1FAE5","fuzzy":"#FEF3C7","unmatched":"#FEE2E2"}
+        c={"exact":"#F0FFE6","fuzzy":"#FFFBE6","unmatched":"#FFF1F0"}
         return f"background-color:{c[v]}" if v in c else ""
     st.dataframe(adf.style.map(_sc,subset=["Status"]).format({"Score":"{:.0f}"}),
                  use_container_width=True)
@@ -999,7 +914,7 @@ with TABS[3]:
                 if col not in tab_counts.columns: tab_counts[col] = 0
             tab_counts = tab_counts.sort_values("High", ascending=False).head(10)
             fig_r = go.Figure()
-            for sev, colour in [("High","#EF4444"),("Medium","#F59E0B")]:
+            for sev, colour in [("High","#D4380D"),("Medium","#D48806")]:
                 fig_r.add_trace(go.Bar(name=sev, x=tab_counts["tab"], y=tab_counts[sev],
                     marker=dict(color=colour, line=dict(width=0))))
             fig_r.update_layout(**plotly_theme(), barmode="stack", height=260,
@@ -1013,8 +928,8 @@ with TABS[3]:
 
     with ccr_sub[3]:
         st.markdown("""
-        <div style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:10px;
-                    padding:16px;margin-bottom:16px;font-size:0.83rem;color:#0C4A6E;line-height:1.6;">
+        <div style="background:#F6FBE8;border:1px solid #C5DE7A;border-radius:10px;
+                    padding:16px;margin-bottom:16px;font-size:0.83rem;color:#2D3A1A;line-height:1.6;">
             Upload underlying working papers. The system fuzzy-matches account labels
             and flags values that differ from the FCA return beyond your chosen tolerance.
         </div>""", unsafe_allow_html=True)
@@ -1147,12 +1062,12 @@ with TABS[5]:
                     <div style="font-size:0.68rem;color:#64748B;text-transform:uppercase;letter-spacing:0.06em;">Eligible Capital</div>
                 </div>
                 <div style="text-align:center;padding:12px;background:#F0FDF4;border-radius:8px;border:1px solid #BBF7D0;">
-                    <div style="font-size:1.1rem;font-weight:700;color:#065F46;">{f"{pc:.1f}%" if pc else "N/A"}</div>
-                    <div style="font-size:0.68rem;color:#064E3B;text-transform:uppercase;letter-spacing:0.06em;">PCA Coverage</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#2D4A00;">{f"{pc:.1f}%" if pc else "N/A"}</div>
+                    <div style="font-size:0.68rem;color:#1A3000;text-transform:uppercase;letter-spacing:0.06em;">PCA Coverage</div>
                 </div>
                 <div style="text-align:center;padding:12px;background:#EFF6FF;border-radius:8px;border:1px solid #BFDBFE;">
-                    <div style="font-size:1.1rem;font-weight:700;color:#1E40AF;">{f"{mc:.1f}%" if mc else "N/A"}</div>
-                    <div style="font-size:0.68rem;color:#1E3A8A;text-transform:uppercase;letter-spacing:0.06em;">MCA Coverage</div>
+                    <div style="font-size:1.1rem;font-weight:700;color:#2D4A00;">{f"{mc:.1f}%" if mc else "N/A"}</div>
+                    <div style="font-size:0.68rem;color:#1A3000;text-transform:uppercase;letter-spacing:0.06em;">MCA Coverage</div>
                 </div>
                 <div style="text-align:center;padding:12px;background:#F8FAFC;border-radius:8px;">
                     <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">{f'{float(cap.get("total_assets") or 0):,.0f}' if cap.get("total_assets") else "N/A"}</div>
@@ -1184,16 +1099,19 @@ with TABS[5]:
             st.session_state["gen_pdf"] = True
 
         if st.session_state.get("gen_pdf"):
-            with st.spinner("Building PDF…"):
+            with st.spinner("Rendering PDF from generated memo…"):
                 try:
-                    resp = httpx.post(f"{BACKEND_URL}/executive_summary_pdf",
-                        json={"hkrbc": data.get("hkrbc",{}),
-                              "results": data["results"],
-                              "ccr_findings": data.get("ccr_findings",[])},
-                        timeout=300)
+                    # Use /render_pdf — sends the already-generated memo,
+                    # no second Kimi call, guarantees PDF matches what is on screen
+                    resp = httpx.post(
+                        f"{BACKEND_URL}/render_pdf",
+                        json={"memo": st.session_state["memo"]},
+                        timeout=60,
+                    )
                     resp.raise_for_status()
                     st.session_state["pdf_bytes"] = resp.content
                     st.session_state["gen_pdf"] = False
+                    st.success("✅ PDF ready.")
                 except Exception as e:
                     st.error(str(e)); st.session_state["gen_pdf"] = False
 
@@ -1204,67 +1122,73 @@ with TABS[5]:
                 use_container_width=True)
 
 
+
 # ═══════════════════════════════════════════════════════════════════════════
 # TAB 6 — EXPORT
 # ═══════════════════════════════════════════════════════════════════════════
 with TABS[6]:
     section_header("Download Reports", "⬇")
 
-    col_a, col_b, col_c = st.columns(3, gap="medium")
+    col_a, col_b = st.columns(2, gap="medium")
 
     with col_a:
         st.markdown("""
         <div class="export-card">
-            <span class="export-icon">📊</span>
-            <div class="export-title">Excel Report (with AI)</div>
-            <div class="export-desc">Full FCA return with AI-generated remarks for all significant movements. Takes 3–8 min.</div>
+            <span class="export-icon">🤖</span>
+            <div class="export-title">Excel Report — with AI Remarks</div>
+            <div class="export-desc">
+                One sheet per FCA tab. Rows in original return order.<br>
+                Difference and % Movement as live Excel formulas.<br>
+                Kimi-K2.5 writes a remark for every row where |movement| &ge; 20%.<br>
+                <strong>Expect 3&ndash;8 minutes</strong> for a full return.
+            </div>
         </div>""", unsafe_allow_html=True)
-        st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-        if st.button("🤖 Export with AI Remarks", type="primary", use_container_width=True):
+        st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+        if st.button("🤖 Generate with AI Remarks", type="primary", use_container_width=True):
             st.session_state["export_mode"] = "ai"
 
     with col_b:
         st.markdown("""
         <div class="export-card">
             <span class="export-icon">⚡</span>
-            <div class="export-title">Excel Report (instant)</div>
-            <div class="export-desc">Full FCA return with all movements. Remarks column blank. Ready in seconds.</div>
+            <div class="export-title">Excel Report — Instant</div>
+            <div class="export-desc">
+                One sheet per FCA tab. Rows in original return order.<br>
+                Difference and % Movement as live Excel formulas.<br>
+                Remarks column left blank.<br>
+                <strong>Ready in seconds.</strong>
+            </div>
         </div>""", unsafe_allow_html=True)
-        st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-        if st.button("⚡ Export without AI Remarks", use_container_width=True):
+        st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+        if st.button("⚡ Generate without AI Remarks", use_container_width=True):
             st.session_state["export_mode"] = "fast"
-
-    with col_c:
-        st.markdown("""
-        <div class="export-card">
-            <span class="export-icon">🗂</span>
-            <div class="export-title">Raw JSON</div>
-            <div class="export-desc">Complete analysis results in JSON format for downstream processing or archiving.</div>
-        </div>""", unsafe_allow_html=True)
-        st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
-        st.download_button("⬇ Download JSON",
-            data=json.dumps(data, indent=2, default=str).encode(),
-            file_name="fca_results.json", mime="application/json",
-            use_container_width=True)
 
     st.markdown('<div style="height:16px;"></div>', unsafe_allow_html=True)
 
     if st.session_state.get("export_mode"):
         ai = st.session_state["export_mode"] == "ai"
-        with st.spinner("Generating Excel with AI remarks…" if ai else "Building Excel…"):
+        label = ("Kimi-K2.5 is writing remarks for all significant movements — "
+                 "this takes a few minutes…") if ai else "Building Excel report…"
+        with st.spinner(label):
             try:
-                resp = httpx.post(f"{BACKEND_URL}/export_results",
-                    json={"results": data["results"], "ai_remarks": ai}, timeout=600)
+                resp = httpx.post(
+                    f"{BACKEND_URL}/export_results",
+                    json={"results": data["results"], "ai_remarks": ai},
+                    timeout=600,
+                )
                 resp.raise_for_status()
                 st.session_state["xlsx_bytes"] = resp.content
                 st.session_state["export_mode"] = None
+                st.success("✅ Report ready — click below to save.")
             except Exception as e:
-                st.error(str(e)); st.session_state["export_mode"] = None
+                st.error(str(e))
+                st.session_state["export_mode"] = None
 
     if st.session_state.get("xlsx_bytes"):
-        st.success("✅ Excel report ready.")
-        st.download_button("📥 Save FCA_Review_Report.xlsx",
+        st.download_button(
+            label="📥  Save  FCA_Review_Report.xlsx",
             data=st.session_state["xlsx_bytes"],
             file_name="FCA_Review_Report.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True)
+            use_container_width=True,
+        )

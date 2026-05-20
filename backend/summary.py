@@ -169,16 +169,27 @@ Write the four-section memo now.
 
     ai_narrative = _stream(system, user, max_tokens=900)
 
-    # Parse sections from AI output
+    # Parse sections from AI output — robust against Kimi formatting variations
+    # Kimi may output "SECTION 1", "**SECTION 1**", "Section 1:", "1.", etc.
+    import re as _re
     sections = {"SECTION 1": "", "SECTION 2": "", "SECTION 3": "", "SECTION 4": ""}
+    # Patterns that signal a new section
+    SEC_PATTERNS = {
+        "SECTION 1": _re.compile(r"(section\s*1|capital\s*adequacy\s*overview|1\.\s*capital)", _re.I),
+        "SECTION 2": _re.compile(r"(section\s*2|material\s*movements|2\.\s*material)", _re.I),
+        "SECTION 3": _re.compile(r"(section\s*3|ccr\s*findings|3\.\s*ccr)", _re.I),
+        "SECTION 4": _re.compile(r"(section\s*4|recommended\s*follow|4\.\s*recommended)", _re.I),
+    }
     current = None
     for line in ai_narrative.split("\n"):
-        for key in sections:
-            if key in line.upper():
-                current = key; break
-        else:
-            if current:
-                sections[current] += line + "\n"
+        matched = False
+        for key, pat in SEC_PATTERNS.items():
+            if pat.search(line):
+                current = key
+                matched = True
+                break
+        if not matched and current:
+            sections[current] += line + "\n"
 
     return {
         "memo_date":     date.today().strftime("%d %B %Y"),
@@ -306,7 +317,7 @@ def build_summary_pdf(memo: dict) -> bytes:
             if not text:
                 continue
             pdf.set_font("Helvetica", "B", 11)
-            pdf.set_fill_color(214, 228, 240)
+            pdf.set_fill_color(134, 188, 37)
             pdf.cell(0, 7, _p(title), ln=True, fill=True)
             pdf.ln(1)
             pdf.set_font("Helvetica", "", 10)
@@ -318,7 +329,7 @@ def build_summary_pdf(memo: dict) -> bytes:
     else:
         # Fallback: dump full narrative
         pdf.set_font("Helvetica", "B", 11)
-        pdf.set_fill_color(214, 228, 240)
+        pdf.set_fill_color(134, 188, 37)
         pdf.cell(0, 7, "AI MEMO", ln=True, fill=True)
         pdf.ln(1)
         pdf.set_font("Helvetica", "", 10)
@@ -356,3 +367,11 @@ def _p(text: str) -> str:
     for char, rep in replacements.items():
         text = text.replace(char, rep)
     return text.encode("latin-1", errors="replace").decode("latin-1")
+
+
+def render_memo_to_pdf(memo: dict) -> bytes:
+    """
+    Render a pre-built memo dict to PDF without making any AI calls.
+    Use this when the memo was already generated and stored in session state.
+    """
+    return build_summary_pdf(memo)
