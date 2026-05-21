@@ -120,32 +120,35 @@ def _extract_single_file(filepath: str) -> dict:
                         break
         result["mca"] = mca
 
-        # Ratios stored as plain decimals (e.g. 5.045 = 504.5%, 2.522 = 252.2%)
-        # Two "Ratio of Eligible capital" rows: first = to MCA, second = to PCA
-        # From debug output:
-        #   Row 49: "Ratio of Eligi..." = 5.045  → MCA ratio  (504.5%)
-        #   Row 50: "Ratio of Eligi..." = 2.522  → PCA ratio  (252.2%)
-        ratio_rows = []
-        for row in rows:
-            if not row or len(row) < 2 or row[1] is None:
-                continue
-            label = str(row[1]).strip().lower()
-            if "ratio of eligible capital" in label:
-                v = _to_float(row[2]) if len(row) > 2 else None
-                if v is not None:
-                    ratio_rows.append((label, v))
+        # Ratios: official template uses IFERROR formula cells — data_only returns None.
+        # Compute directly from eligible capital / PCA / MCA values.
+        ec    = result.get("eligible_capital")
+        pca_v = result.get("pca")
+        mca_v = result.get("mca")
+        if ec and pca_v and pca_v > 0:
+            result["pca_ratio"] = round(ec / pca_v * 100, 2)
+        if ec and mca_v and mca_v > 0:
+            result["mca_ratio"] = round(ec / mca_v * 100, 2)
 
-        for label, v in ratio_rows:
-            pct = v * 100  # convert 5.045 → 504.5
-            if "to mca" in label:
-                result["mca_ratio"] = pct
-            elif "to pca" in label:
-                result["pca_ratio"] = pct
-            else:
-                # Assign by order: first = MCA (higher ratio), second = PCA
-                if "mca_ratio" not in result:
+        # Fallback: try reading pre-filled ratio cells (some insurers store values)
+        if not result.get("pca_ratio") or not result.get("mca_ratio"):
+            for row in rows:
+                if not row or len(row) < 2 or row[1] is None:
+                    continue
+                label = str(row[1]).strip().lower()
+                if "ratio of eligible capital" not in label:
+                    continue
+                # Try columns 2 and 3
+                v = _to_float(row[2]) if len(row) > 2 else None
+                if v is None:
+                    v = _to_float(row[3]) if len(row) > 3 else None
+                if v is None:
+                    continue
+                # Convert decimal (2.48) to percentage (248) if needed
+                pct = v * 100 if v < 20 else v
+                if "to mca" in label and not result.get("mca_ratio"):
                     result["mca_ratio"] = pct
-                elif "pca_ratio" not in result:
+                elif "to pca" in label and not result.get("pca_ratio"):
                     result["pca_ratio"] = pct
 
     # ── F.1 EBS ────────────────────────────────────────────────────────────

@@ -237,7 +237,7 @@ def build_summary_pdf(memo: dict) -> bytes:
 
     # ── Capital metrics table ─────────────────────────────────────────────
     pdf.set_font("Helvetica", "B", 12)
-    pdf.set_fill_color(214, 228, 240)
+    pdf.set_fill_color(134, 188, 37)
     pdf.cell(0, 7, "KEY CAPITAL METRICS (HKD Thousands)", ln=True, fill=True)
     pdf.ln(2)
 
@@ -274,7 +274,7 @@ def build_summary_pdf(memo: dict) -> bytes:
 
     # ── Top movements table ────────────────────────────────────────────────
     pdf.set_font("Helvetica", "B", 12)
-    pdf.set_fill_color(214, 228, 240)
+    pdf.set_fill_color(134, 188, 37)
     pdf.cell(0, 7, "TOP 5 MATERIAL MOVEMENTS", ln=True, fill=True)
     pdf.ln(2)
 

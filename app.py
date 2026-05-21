@@ -36,7 +36,7 @@ st.markdown("""
 ────────────────────────────────────────────────────────────────────── */
 
 html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-.main .block-container { padding: 1.5rem 2rem 2rem; max-width: 1400px; }
+.main .block-container { padding: 0.25rem 2rem 2rem; max-width: 1400px; }
 #MainMenu, footer, .stDeployButton { display: none !important; }
 header[data-testid="stHeader"] { background: transparent; }
 
@@ -361,6 +361,96 @@ header[data-testid="stHeader"] { background: transparent; }
 @keyframes fadeInDown { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0);  } }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
 .loading-pulse { animation: pulse 1.5s ease infinite; }
+/* ── Present mode ── */
+body.present-mode [data-testid="stSidebar"] { display: none !important; }
+body.present-mode .main .block-container { max-width: 100% !important; padding: 0.25rem 1.5rem 2rem; }
+
+/* ── KPI card glow on good values ── */
+.kpi-card.green:hover { box-shadow: 0 8px 24px rgba(134,188,37,0.25); }
+.kpi-card .kpi-value-good { color: #2D4A00 !important; }
+
+/* ── Tooltip ── */
+.tooltip-wrap { position: relative; display: inline-flex; align-items: center; gap: 4px; }
+.tooltip-icon {
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #E8E8E8; color: #595959;
+    font-size: 9px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: default; flex-shrink: 0;
+    transition: background 0.15s;
+}
+.tooltip-icon:hover { background: #86BC25; color: white; }
+.tooltip-box {
+    visibility: hidden; opacity: 0;
+    position: absolute; bottom: 120%; left: 50%;
+    transform: translateX(-50%);
+    background: #1A1A1A; color: #F5F5F5;
+    font-size: 0.75rem; line-height: 1.5;
+    padding: 8px 12px; border-radius: 8px;
+    white-space: nowrap; max-width: 260px;
+    white-space: normal; width: max-content; max-width: 240px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    z-index: 9999;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+.tooltip-box::after {
+    content: "";
+    position: absolute; top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1A1A1A;
+}
+.tooltip-wrap:hover .tooltip-box { visibility: visible; opacity: 1; }
+
+/* ── Enhanced KPI value sizing ── */
+.kpi-value { font-size: 1.6rem !important; }
+.kpi-value-lg { font-size: 2rem !important; font-weight: 800 !important; }
+.kpi-value-pct {
+    font-size: 1.55rem !important; font-weight: 800 !important;
+    background: linear-gradient(135deg, #86BC25, #4A6741);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ── Empty state illustration ── */
+.empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 60px 40px;
+    animation: fadeInUp 0.5s ease;
+}
+.empty-state-icon {
+    width: 88px; height: 88px; margin-bottom: 20px;
+}
+.empty-state h2 {
+    font-size: 1.15rem !important; font-weight: 700 !important;
+    color: #1A1A1A !important; margin-bottom: 8px !important;
+}
+.empty-state p {
+    font-size: 0.85rem; color: #737373; line-height: 1.6;
+    text-align: center; max-width: 380px;
+}
+.empty-state-steps {
+    display: flex; gap: 24px; margin-top: 28px; flex-wrap: wrap;
+    justify-content: center;
+}
+.empty-step {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: white; border: 1px solid #E8E8E8;
+    border-radius: 10px; padding: 12px 16px;
+    max-width: 160px;
+    transition: all 0.2s ease;
+}
+.empty-step:hover { border-color: #86BC25; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(134,188,37,0.15); }
+.empty-step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #86BC25; color: #111; font-size: 0.72rem;
+    font-weight: 700; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.empty-step-text { font-size: 0.78rem; color: #404040; line-height: 1.4; }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -381,6 +471,29 @@ def section_header(title, icon=""):
         <h3>{icon} {title}</h3>
         <div class="section-line"></div>
     </div>""", unsafe_allow_html=True)
+
+TOOLTIPS = {
+    "PCA":       "Prescribed Capital Amount — minimum regulatory capital the insurer must hold under HKRBC.",
+    "MCA":       "Minimum Capital Amount — hard floor; breach triggers immediate IA intervention.",
+    "MOCE":      "Margin over Current Estimate — risk margin added to best-estimate liabilities.",
+    "CE":        "Current Estimate — probability-weighted best estimate of future insurance cash flows.",
+    "TVOG":      "Time Value of Options and Guarantees — cost of embedded policyholder options.",
+    "z-score":   "Number of standard deviations from the mean movement across all line items. |z|>3 is statistically extreme.",
+    "Materiality %": "Item's absolute CY value as a % of total sheet value. Used to weight exception priority.",
+    "RCA":       "Risk Capital Amount — capital required for each individual risk module before diversification.",
+    "LAC":       "Loss Absorbing Capacity — adjustment recognising that policyholder bonuses can absorb losses.",
+    "HKRBC":     "Hong Kong Risk-Based Capital — the prudential capital framework for HK insurers from 2024.",
+}
+
+def tooltip(term: str) -> str:
+    """Return an inline ⓘ icon with hover tooltip for a known actuarial term."""
+    tip = TOOLTIPS.get(term, "")
+    if not tip:
+        return term
+    return (f'<span class="tooltip-wrap">{term}'
+            f'<span class="tooltip-icon">i</span>'
+            f'<span class="tooltip-box">{tip}</span>'
+            f'</span>')
 
 def badge(text, level="ok"):
     colours = {"High":"high","Medium":"medium","Low":"low","ok":"ok","exact":"ok","fuzzy":"medium","unmatched":"high"}
@@ -528,9 +641,36 @@ with st.sidebar:
             </div>
         </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div style="height:24px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="height:16px;"></div>', unsafe_allow_html=True)
+
+    # Present mode toggle
+    present_js = """
+    <script>
+    function togglePresent() {
+        const b = document.body;
+        const btn = document.getElementById('present-btn');
+        if (b.classList.contains('present-mode')) {
+            b.classList.remove('present-mode');
+            btn.innerHTML = '⛶ &nbsp;Present Mode';
+            btn.style.background = 'rgba(134,188,37,0.1)';
+        } else {
+            b.classList.add('present-mode');
+            btn.innerHTML = '✕ &nbsp;Exit Present';
+            btn.style.background = 'rgba(220,60,60,0.15)';
+        }
+    }
+    </script>
+    <button id="present-btn" onclick="togglePresent()"
+        style="width:100%;padding:8px 12px;border-radius:8px;border:1px solid #3A3A3A;
+               background:rgba(134,188,37,0.1);color:#B5D95A;font-size:0.82rem;
+               font-weight:600;cursor:pointer;margin-bottom:12px;transition:all 0.2s;">
+        ⛶ &nbsp;Present Mode
+    </button>
+    """
+    st.markdown(present_js, unsafe_allow_html=True)
+
     st.markdown('<div style="font-size:0.68rem;color:#334155;text-align:center;line-height:1.5;">'
-                'Smart Regulatory Reviewer<br>AI-assisted · Not for submission</div>',
+                'Smart Regulatory Reviewer<br>Deloitte · AI-assisted · Not for submission</div>',
                 unsafe_allow_html=True)
 
 
@@ -549,14 +689,38 @@ st.markdown("""
 
 if "results" not in st.session_state:
     st.markdown("""
-    <div style="text-align:center;padding:80px 40px;color:#64748B;">
-        <div style="font-size:3rem;margin-bottom:16px;">⬆</div>
-        <div style="font-size:1rem;font-weight:600;color:#374151;margin-bottom:8px;">
-            Upload files to begin
-        </div>
-        <div style="font-size:0.85rem;line-height:1.6;max-width:400px;margin:0 auto;">
-            Upload your CY and PY Excel files in the sidebar,
-            then click <strong>Run Analysis</strong>.
+    <div class="empty-state">
+        <svg class="empty-state-icon" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="88" height="88" rx="20" fill="#F5F5F5"/>
+            <rect x="18" y="22" width="36" height="44" rx="4" fill="#E8E8E8"/>
+            <rect x="22" y="30" width="24" height="3" rx="1.5" fill="#BDBDBD"/>
+            <rect x="22" y="37" width="18" height="3" rx="1.5" fill="#BDBDBD"/>
+            <rect x="22" y="44" width="21" height="3" rx="1.5" fill="#BDBDBD"/>
+            <rect x="22" y="51" width="14" height="3" rx="1.5" fill="#BDBDBD"/>
+            <rect x="34" y="34" width="36" height="34" rx="4" fill="#86BC25" opacity="0.15"/>
+            <rect x="34" y="34" width="36" height="34" rx="4" stroke="#86BC25" stroke-width="1.5"/>
+            <path d="M42 51 L52 43 L62 51" stroke="#86BC25" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M52 43 L52 62" stroke="#86BC25" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h2>Upload FCA Returns to Begin</h2>
+        <p>Upload your Current Year and Prior Year Excel files in the sidebar, then run the AI-powered analysis.</p>
+        <div class="empty-state-steps">
+            <div class="empty-step">
+                <div class="empty-step-num">1</div>
+                <div class="empty-step-text">Upload CY &amp; PY Excel files</div>
+            </div>
+            <div class="empty-step">
+                <div class="empty-step-num">2</div>
+                <div class="empty-step-text">Click <strong>Run Analysis</strong></div>
+            </div>
+            <div class="empty-step">
+                <div class="empty-step-num">3</div>
+                <div class="empty-step-text">Review AI-generated insights</div>
+            </div>
+            <div class="empty-step">
+                <div class="empty-step-num">4</div>
+                <div class="empty-step-text">Export Excel &amp; PDF reports</div>
+            </div>
         </div>
     </div>""", unsafe_allow_html=True)
     st.stop()
@@ -596,7 +760,17 @@ with TABS[0]:
     emerged      = sum(1 for f in data.get("ccr_findings",[])
                        if any(k in f.get("finding","") for k in ["EMERGED","DISAPPEARED"]))
     pca_ratio    = _v(cy_cap, "pca_ratio")
-    pca_str      = f"{pca_ratio:.0f}%" if pca_ratio else "N/A"
+    pca_ratio_num = _v(cy_cap, "pca_ratio")
+    pca_str       = f"{pca_ratio_num:.0f}%" if pca_ratio_num else "N/A"
+    pca_is_good   = pca_ratio_num and pca_ratio_num >= 150
+
+    # Custom PCA card with gradient text and glow
+    pca_card_html = f"""
+    <div class="kpi-card {'green' if pca_is_good else 'red'}" style="{'box-shadow:0 4px 16px rgba(134,188,37,0.2)' if pca_is_good else ''}">
+        <span class="kpi-icon">🏛</span>
+        <div class="{'kpi-value-pct' if pca_is_good else 'kpi-value'}">{pca_str}</div>
+        <div class="kpi-label">PCA COVERAGE</div>
+    </div>"""
 
     st.markdown(f"""
     <div class="kpi-grid">
@@ -605,7 +779,7 @@ with TABS[0]:
         {kpi_card("🟡", medium_count, "Medium Priority", "amber")}
         {kpi_card("⚠️", missing_tabs, "Missing Tabs", "black")}
         {kpi_card("🔍", emerged, "Zero Emergence", "olive")}
-        {kpi_card("🏛", pca_str, "PCA Coverage", "green")}
+        {pca_card_html}
     </div>
     """, unsafe_allow_html=True)
 
@@ -655,52 +829,155 @@ with TABS[0]:
 
     st.markdown('<div class="styled-divider"></div>', unsafe_allow_html=True)
 
-    # Row B: Waterfall
-    section_header("Asset Movement Bridge — PY to CY", "🌉")
+    # Row B: Waterfall — Net Asset Value bridge (equity movement)
+    section_header("Net Asset Value Bridge — PY to CY (Top Drivers)", "🌉")
     f1_data = next((tr for tr in data["results"]
                     if "F.1" in tr["tab"] and "EBS" in tr["tab"] and "F.1B" not in tr["tab"]), None)
     if f1_data:
         wf_df = pd.DataFrame(f1_data["data"])
-        for c in ["abs_movement","cy_value","py_value"]:
+        for c in ["abs_movement","cy_value","py_value","pct_change"]:
             wf_df[c] = pd.to_numeric(wf_df[c], errors="coerce")
-        excl = ["summation","total assets","total liabilities","total equity","net assets","shareholders"]
-        mask = ~wf_df["description"].str.lower().str.contains("|".join(excl), na=False)
-        detail = wf_df[mask].dropna(subset=["abs_movement","py_value","cy_value"])
-        detail = detail[detail["abs_movement"].abs() > 0]
-        pos = detail[detail["abs_movement"]>0].nlargest(8, "abs_movement")
-        neg = detail[detail["abs_movement"]<0].nsmallest(4, "abs_movement")
-        drivers = pd.concat([pos,neg]).sort_values("abs_movement", ascending=False)
-        if not drivers.empty:
-            py_tot = float(_v(py_cap,"total_assets") or detail["py_value"].sum())
-            cy_tot = float(_v(cy_cap,"total_assets") or detail["cy_value"].sum())
-            other  = (cy_tot - py_tot) - drivers["abs_movement"].sum()
-            labels   = (["YE24 Total Assets"] + drivers["description"].str[:32].tolist()
-                        + (["Other movements"] if abs(other)>1000 else []) + ["YE25 Total Assets"])
-            values   = ([py_tot] + drivers["abs_movement"].tolist()
-                        + ([other] if abs(other)>1000 else []) + [cy_tot])
-            measures = (["absolute"] + ["relative"]*len(drivers)
-                        + (["relative"] if abs(other)>1000 else []) + ["total"])
+        wf_df["code"] = wf_df["cy_code"].fillna("")
+
+        # ── ASSET rows only: codes starting with I. (excluding totals) ──────
+        asset_excl = ["summation","total assets","i – total","i.u.","goodwill","intangible"]
+        asset_mask = (
+            wf_df["code"].str.startswith("I.", na=False) &
+            ~wf_df["description"].str.lower().str.contains("|".join(asset_excl), na=False) &
+            wf_df["abs_movement"].notna() &
+            (wf_df["abs_movement"].abs() > 0)
+        )
+        assets = wf_df[asset_mask].copy()
+
+        # ── EQUITY rows: codes starting with III. (excluding totals) ────────
+        eq_excl = ["summation","total equity","shareholders","iii – equity","minority","participating poli"]
+        eq_mask = (
+            wf_df["code"].str.startswith("III.", na=False) &
+            ~wf_df["description"].str.lower().str.contains("|".join(eq_excl), na=False) &
+            wf_df["abs_movement"].notna() &
+            (wf_df["abs_movement"].abs() > 0)
+        )
+        equity = wf_df[eq_mask].copy()
+
+        # Decide what to show:
+        # If equity rows exist → NAV bridge (more meaningful for actuaries)
+        # Otherwise → top asset movers bridge
+        use_equity = not equity.empty and len(equity) >= 2
+
+        if use_equity:
+            py_nav = float(_v(py_cap, "total_equity") or 0)
+            cy_nav = float(_v(cy_cap, "total_equity") or 0)
+            bridge_rows = equity.nlargest(8, "abs_movement")
+            bridge_title = "NAV (Equity) Bridge — YE24 to YE25"
+            start_label, end_label = "YE24 Net Assets", "YE25 Net Assets"
+        else:
+            py_nav = float(_v(py_cap, "total_assets") or 0)
+            cy_nav = float(_v(cy_cap, "total_assets") or 0)
+            pos = assets[assets["abs_movement"] > 0].nlargest(6, "abs_movement")
+            neg = assets[assets["abs_movement"] < 0].nsmallest(3, "abs_movement")
+            bridge_rows = pd.concat([pos, neg]).sort_values("abs_movement", ascending=False)
+            bridge_title = "Total Assets Bridge — YE24 to YE25"
+            start_label, end_label = "YE24 Total Assets", "YE25 Total Assets"
+
+        if not bridge_rows.empty and py_nav > 0:
+            # Clean labels: strip code prefix, capitalise, max 28 chars
+            def _clean_label(row):
+                desc = str(row["description"]).strip()
+                code = str(row["code"]).strip()
+                # Remove code from start of description if present
+                if desc.startswith(code):
+                    desc = desc[len(code):].strip(". ")
+                # Capitalise first letter, truncate
+                desc = desc[:1].upper() + desc[1:] if desc else code
+                return desc[:30]
+
+            bridge_rows = bridge_rows.copy()
+            bridge_rows["label"] = bridge_rows.apply(_clean_label, axis=1)
+
+            other = (cy_nav - py_nav) - bridge_rows["abs_movement"].sum()
+            show_other = abs(other) > max(500, abs(cy_nav - py_nav) * 0.02)
+
+            labels   = ([start_label]
+                        + bridge_rows["label"].tolist()
+                        + (["Other net movements"] if show_other else [])
+                        + [end_label])
+            values   = ([py_nav]
+                        + bridge_rows["abs_movement"].tolist()
+                        + ([other] if show_other else [])
+                        + [cy_nav])
+            measures = (["absolute"]
+                        + ["relative"] * len(bridge_rows)
+                        + (["relative"] if show_other else [])
+                        + ["total"])
+
+            # Text: show value for totals, +/- movement for relative bars
+            def _bar_text(m, v):
+                if m == "absolute" or m == "total":
+                    return f"{v:,.0f}"
+                return f"{v:+,.0f}"
+            bar_texts = [_bar_text(m, v) for m, v in zip(measures, values)]
+
+            # Colour bars: green = increase, red = decrease,
+            # dark for totals, grey for "other"
+            bar_colours = []
+            for m, v, lbl in zip(measures, values, labels):
+                if m in ("absolute", "total"):
+                    bar_colours.append("#1A1A1A")
+                elif "other" in str(lbl).lower():
+                    bar_colours.append("#9E9E9E")
+                elif v >= 0:
+                    bar_colours.append("#86BC25")
+                else:
+                    bar_colours.append("#E53935")
+
             fig_wf = go.Figure(go.Waterfall(
-                orientation="v", measure=measures, x=labels, y=values,
-                connector=dict(line=dict(color="#E2E8F0", width=1, dash="dot")),
+                orientation="v",
+                measure=measures,
+                x=labels,
+                y=values,
+                connector=dict(line=dict(color="#E0E0E0", width=1.5, dash="dot")),
                 increasing=dict(marker=dict(color="#86BC25", line=dict(width=0))),
-                decreasing=dict(marker=dict(color="#EF4444", line=dict(width=0))),
+                decreasing=dict(marker=dict(color="#E53935", line=dict(width=0))),
                 totals=dict(marker=dict(color="#1A1A1A", line=dict(width=0))),
-                text=[f"{v:,.0f}" for v in values],
+                text=bar_texts,
                 textposition="outside",
-                hovertemplate="<b>%{x}</b><br>%{y:,.0f}<extra></extra>",
+                hovertemplate="<b>%{x}</b><br>HKD %{y:,.0f}k<extra></extra>",
             ))
-            fig_wf.update_layout(**plotly_theme(), height=420,
-                yaxis=dict(tickformat=",.0f", title="HKD Thousands", **AX),
-                xaxis=dict(tickangle=-30, **AX),
+            # Total change annotation
+            net_change = cy_nav - py_nav
+            net_pct    = net_change / py_nav * 100 if py_nav else 0
+            net_colour = "#86BC25" if net_change >= 0 else "#E53935"
+            fig_wf.update_layout(
+                **plotly_theme(),
+                title=dict(
+                    text=(f"<b>{bridge_title}</b>   "
+                          f"<span style='font-size:13px;color:{net_colour}'>"
+                          f"Net change: {net_change:+,.0f} ({net_pct:+.1f}%)</span>"),
+                    font=dict(size=13),
+                    x=0,
+                ),
+                height=460,
+                yaxis=dict(tickformat=",.0f", title="HKD Thousands",
+                           gridcolor="#F5F5F5", zerolinecolor="#E0E0E0"),
+                xaxis=dict(tickangle=-35, tickfont=dict(size=11),
+                           gridcolor="#F5F5F5"),
                 showlegend=False,
-                margin=dict(l=16,r=16,t=24,b=130))
+                margin=dict(l=20, r=20, t=60, b=140),
+            )
             st.plotly_chart(fig_wf, use_container_width=True)
+        else:
+            st.info("Insufficient movement data to build bridge chart.")
 
     st.markdown('<div class="styled-divider"></div>', unsafe_allow_html=True)
 
     # Row C: HKRBC
-    section_header("HKRBC Capital Structure", "🏛")
+    st.markdown(
+        f'''<div class="section-header">
+            <h3>🏛 HKRBC Capital Structure &nbsp;
+                {tooltip("PCA")} &nbsp; {tooltip("MCA")} &nbsp; {tooltip("MOCE")}
+            </h3>
+            <div class="section-line"></div>
+        </div>''', unsafe_allow_html=True)
 
     def _segs(d):
         ta=_v(d,"total_assets") or 0; tl=_v(d,"total_liabilities") or 0
