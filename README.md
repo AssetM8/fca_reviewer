@@ -68,17 +68,17 @@ pip install -r requirements.txt
 This takes 2–5 minutes. You will see packages being downloaded and installed.
 
 ### Step 5 — Create your `.env` file
-The tool needs API credentials to call the AI model. Create a file called `.env` in the `fca_reviewer` folder (same level as `app.py`) with the following content:
+The tool needs API credentials to call the AI model. Create a file called `.env` in the `fca_reviewer` folder (same level as `app.py`) with the following content — the API key is pre-configured for judges:
 
 ```
 LLM_BASE_URL=https://nova.deloitte.com.cn/del/v1
-LLM_API_KEY=your-api-key-here
+LLM_API_KEY=ak-e7BB03m9aFgrS6TjH0b4O7cc4mLl619akSfpa3U79zKDj5ip
 LLM_MODEL=Kimi-K2.5
 ```
 
-Replace `your-api-key-here` with your actual Deloitte Nova API key.
-
-> **Important:** Never commit the `.env` file to GitHub. It is already listed in `.gitignore`.
+> **Note for judges:** The API key above is pre-configured and ready to use.
+> You do not need to obtain your own key.
+> The Nova endpoint requires Deloitte VPN or office network access.
 
 ---
 
